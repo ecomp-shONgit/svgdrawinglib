@@ -67,6 +67,36 @@ function getdot( cx, cy, r, name, linkit, cocol, colstro ){ //gon
 
     return cont;
 }
+function getdotfkt( cx, cy, r, name, fktcall, cocol, colstro ){ //gon
+    let cont = document.createElementNS( xmlns, 'g' );
+
+    let ri = Math.sqrt( (r*r)-((r/2)*(r/2)) );
+    let po = "";
+    po += (cx+r).toString()+","+cy.toString()+" "; //r 0
+    po += (cx+(r/2)).toString()+","+(cy+ri).toString()+" "; //u 1
+    po += (cx-(r/2)).toString()+","+(cy+ri).toString()+" "; //uu 2
+    po += (cx-r).toString()+","+cy.toString()+" "; //l 3
+    po += (cx-(r/2)).toString()+","+(cy-ri).toString()+" "; //o 4
+    po += (cx+(r/2)).toString()+","+(cy-ri).toString()+" "; //oo 5
+
+    let popo = document.createElementNS( xmlns, 'polygon' );
+    popo.setAttribute( 'title', name );
+    popo.setAttribute( 'id', name+"dot" );
+    popo.setAttribute( 'fill' , cocol     );
+    popo.setAttribute( 'stroke' , colstro     );
+    popo.setAttribute( 'name' , cocol     );
+    popo.setAttribute( 'points', po );
+    if( fktcall != "" ){
+        popo.setAttribute( "onclick", fktcall );
+    }
+    let tit = document.createElementNS("http://www.w3.org/2000/svg","title")
+    tit.textContent = name;
+    
+    popo.appendChild( tit ); 
+    cont.appendChild( popo ); 
+
+    return cont;
+}
 
 function getlabdot( cx, cy, r, name, linkit, cocol, colstro ){ //horizontaly oriented label
     let cont = document.createElementNS( xmlns, 'g' );
@@ -130,6 +160,17 @@ function getsvglabel(text, x, y, ang){
     
     return label;
 }
+function getsvglabelcolor(text, x, y, ang, c ){
+    let label = document.createElementNS(xmlns,"text")
+    label.textContent = text;
+    label.setAttribute( 'x', x );
+    label.setAttribute( 'y', y );
+    label.setAttribute( 'fill', c );
+    //label.setAttribute( 'alignment-baseline', "hanging" );
+    label.setAttribute( 'transform', 'rotate('+ang.toString()+', '+x.toString()+', '+y.toString()+')');
+    
+    return label;
+}
 
 function getrounddotlab( cx, cy, r, ang, name, cocol, colstro, linkit ){ //vertical aligned label
     let retsvgel = document.createElementNS( xmlns, 'g' );
@@ -169,15 +210,19 @@ function getlabeledcircle( cx, cy, r, name, strokewi, colstro, linkit ){ //horiz
     if( linkit != "" ){
         popo.setAttribute( 'onclick', linkit );
     }
-    let label = document.createElementNS(xmlns,"text")
-    label.textContent = name + "kn";
-    label.setAttribute( 'x', cx+r );
-    label.setAttribute( 'y', cy+(r-2) );
-    label.setAttribute( 'transform', 'rotate(0, '+cx.toString()+', '+cy.toString()+')');
+    if( name != "" ){
+        let label = document.createElementNS(xmlns,"text")
+        label.textContent = name + "kn";
+        label.setAttribute( 'x', cx+r );
+        label.setAttribute( 'y', cy+(r-2) );
+        label.setAttribute( 'transform', 'rotate(0, '+cx.toString()+', '+cy.toString()+')');
+        retsvgel.appendChild( label );
+    }
     retsvgel.appendChild( popo );
-    retsvgel.appendChild( label );
+    
     return retsvgel;
 }
+
 function getstraitlinelabelatend( x1, y1, x2, y2, c, w, l, dg ){
     let retsvgel = document.createElementNS( xmlns, 'g' );
     let popo = document.createElementNS( xmlns, 'line' );
@@ -197,6 +242,25 @@ function getstraitlinelabelatend( x1, y1, x2, y2, c, w, l, dg ){
     retsvgel.appendChild( label );
     return retsvgel;
 }
+function getstraitlinelabelatendlabcentered( x1, y1, x2, y2, c, w, l, dg ){
+    let retsvgel = document.createElementNS( xmlns, 'g' );
+    let popo = document.createElementNS( xmlns, 'line' );
+    popo.setAttribute( 'stroke' , c );
+    popo.setAttribute( 'stroke-width' , w );
+    popo.setAttribute( 'x1' , x1     );
+    popo.setAttribute( 'y1' , y1     );
+    popo.setAttribute( 'x2' , x2     );
+    popo.setAttribute( 'y2' , y2     );
+    let label = document.createElementNS(xmlns,"text")
+    label.textContent = l;
+    
+    label.setAttribute( 'x', (x1+x2)/2 );
+    label.setAttribute( 'y', (y1+y2)/2 );
+    label.setAttribute( 'transform', 'rotate('+dg+', '+x2.toString()+', '+y2.toString()+')');
+    retsvgel.appendChild( popo );
+    retsvgel.appendChild( label );
+    return retsvgel;
+}
 function getstraitline( x1, y1, x2, y2, c, w ){
     let popo = document.createElementNS( xmlns, 'line' );
     popo.setAttribute( 'stroke' , c );
@@ -209,6 +273,28 @@ function getstraitline( x1, y1, x2, y2, c, w ){
     return popo;
 }
 /*------------------------PLOT___ VISUALISATIONS------------------------------*/
+function getbarplotsimple( tw, th, move, data, wink ){ //data keys is lables for x, data value is values for the y, downwards facing
+    let mainsvgelem = getsvgMAINELEM( (tw+move).toString(), (th+move).toString() );
+    let posx = move;
+    let posy = move;
+    const ll = Object.keys( data ).length;
+    let xinc = 20;
+    if( tw < ( ll * xinc ) ){
+        xinc = Math.round( tw / ll );
+    }
+    const widthofbalk = Math.floor(xinc/2);
+    const posplusxbalk = widthofbalk/2;
+    //ceck if max value is greater than th - 
+    for( let i in data ){
+        let toadd = data[ i ];
+        //getstraitlinelabelatend( x1, y1, x2, y2, c, w, l, dg )
+        
+        mainsvgelem.appendChild( getstraitlinelabelatend( posx+posplusxbalk, posy, posx+posplusxbalk, posy+toadd, getColorCode(), widthofbalk, toadd.toString() +" :: "+  i, wink ) );
+        posx += xinc;
+    }
+    return mainsvgelem;
+}
+
 function getbarplot( tw, th, scale, move, data, namearray, linksss ){ //data is dict of array of arrays
     
     const ll = namearray.length;
@@ -368,6 +454,7 @@ function getheatmapsquares( tw, th, scale, move, data, namearray, linksss ){
     }
     //squares
     const stokeunite = getColorCode();
+    const base1 = 255.0; //for squares
     for( let i = 0; i < ll; i += 1){ //lines
         //console.log( fnames[i] );
         posy = ( (i) * yinc ) + move;
@@ -376,10 +463,13 @@ function getheatmapsquares( tw, th, scale, move, data, namearray, linksss ){
             posx = (t * xinc) + move; 
             //console.log(fnames[t], i, t, posx, posy);
             const cpst = 1;//(1-((data[i][t]*1.0)/maxval)).toString();
-            const colv = ((data[i][t]*255.0)/maxval).toString();
+            const colv = ((data[i][t]*base1)/maxval).toString();
+            const size = r-((data[i][t]*r)/maxval);
             const heatcolor = "rgba("+colv+","+colv+","+colv+", "+ cpst +")";
             //console.log(heatcolor);
-            mainsvgelem.appendChild( getsquare( posx, posy, r, fnames[i]+" - "+fnames[t], "", heatcolor,  stokeunite) );
+            
+            //mainsvgelem.appendChild( getrounddotlab( posx, posy, size, 0, "", heatcolor, stokeunite, "" ) ); //circles diff. sizes
+            mainsvgelem.appendChild( getsquare( posx, posy, size, fnames[i]+" - "+fnames[t], "", heatcolor,  stokeunite) ); //colored squares
         }
     }
     return mainsvgelem;
@@ -743,7 +833,7 @@ function drawhclustT( tw, th, scale, move, hclustar, linksss ){ //strong hierarc
         th = tempth;
     } 
     let mainsvgelem = getsvgMAINELEM( (tw+move+offsety).toString(), (th+move+offsetx).toString() );
-    //console.log(hclustar);
+    console.log(hclustar);
     //this gives a regular grid for the points
     let xinc = Math.round( (tw - (offsety*2)) / hclustar[0].length );
     let yinc = Math.round( (th - (offsetx*2)) / hclustar[0][ hclustar[0].length-1 ][0].length );
@@ -785,7 +875,8 @@ function drawhclustT( tw, th, scale, move, hclustar, linksss ){ //strong hierarc
         }
            
     }
-    //console.log(posnode);
+    console.log(posnode);
+    
     //draw sorted result layer (every node is a cluster) vertical on the most right position
     for(let l = 0; l < hclustar[ 0 ].length; l+=1 ){
         for(let ci = 0; ci < hclustar[ 0 ][ l ].length; ci += 1 ){
@@ -824,6 +915,7 @@ function drawhclustT( tw, th, scale, move, hclustar, linksss ){ //strong hierarc
                 mainsvgelem.appendChild( getstraitline( xpos, toy, posnode[hclustar[ 0 ][ l ][ ci ][hclustar[ 0 ][ l ][ ci ].length-1].toString()][0], toy, c1, 1.0 ) ); 
             }
         }
+    
     }
    /* for(let ci = 0; ci < hclustar[ 0 ][ ll ][0].length; ci+=1 ){ //get last clusterlayer wich gives the over all sorting
         //dar dot and name
@@ -1650,17 +1742,296 @@ function getoutputofnode( su, bia, ldop, loffx, loffy, w, h, unknownX, unknownY 
 
     return drawingall;
 }
+/*------------------ebehavior diagrams     -----------------------------------*/
 
+/*for( let c = 0; c < 87; c+=1 ){
+        console.log( getColorCode( ) );
+    }*/
+const colorforcode = {"fo": "#79645C", "ufo": "#1DC59B", "fhi": "#1F37B3", "thi": "#5015CA", "txs": "#E69F17", "txc": "#B1D28A", "txp": "#2F06F8", "txu": "#37F90D", "src": "#5A69A1", "kld": "#E6CCDC", "klu": "#8464B7", "pld": "#8074B9", "plu": "#B66070", "tld": "#E8D5DF", "tlu": "#4A7AFD", "rsi": "#B91F2A", "amp": "#8D1435", "lan": "#54625B", "key":"#ED6F74", "scr": "#AA2E8F"};
+
+function contvalintime( nu, w, h, timestart, yoffset, scale ){
+    let drawingall = getsvgMAINELEM( w, h+(yoffset*2)+100 );
+    const halfwid = Math.floor( w / 6 );
+    let oldvpos = 0;
+    
+    drawingall.appendChild( getstraitline( 0, 0, 0, h+yoffset, getColorCode(), 2 ) );
+    let ang = 45;
+    let oldsplval = 20;
+    const c = getColorCode();
+    for( let k in nu ){
+           // console.log(k);
+            if( isNaN( k ) ){
+                continue;
+            }
+            let val = nu[ k ];
+            if(val == null){
+                val = 0;
+            }
+            const vpos = Math.floor( (k - timestart ) / 100 ) + yoffset ;//is sec should be 10 sec steps
+            const splval = nu[ k ] * scale; //just positive scale von spl vals
+           
+            let li = getstraitlinelabelatend( oldsplval, oldvpos, splval, vpos, c, 4,  "", 0 );
+                li.name = val.toString(); 
+			    li.onmouseout = function(){ hideelemname( ); };
+			    li.onmouseenter = function(){ showelemname( this ); };
+                drawingall.appendChild( li );
+                
+           
+            //console.log(oldk, k, k-oldk, ereigbez);
+            
+            oldvpos = vpos;
+            oldsplval = splval;
+    }
+    
+    return drawingall;
+}
+
+function nutzungintime( nu, w, h, names, yoffset ){
+    let drawingall = getsvgMAINELEM( w, h+(yoffset*2)+100 );
+    const halfwid = Math.floor( w / 6 );
+    let oldk = 0;
+    drawingall.appendChild( getstraitline( 2, yoffset, 2, h+yoffset, getColorCode(), 2 ) );
+    let ang = 45;
+    let oldereigbez = "";
+    for( let k in nu.paN ){
+           // console.log(k);
+            if( isNaN( k ) ){
+                continue;
+            }
+            
+            const vpos = Math.floor( (k - nu.timestart ) / 100 ) + yoffset ;//is sec should be 10 sec steps
+            //console.log(vpos, k, nu.timestart);
+            const ereigbez = names[ nu.erN[ k ] ];
+            //console.log(nu.erN[ k ] );
+            const c = colorforcode[ nu.erN[ k ] ];
+            if(  k-oldk > 100 ){ //do not draw line for very close events
+                //console.log(colorforcode[ nu.erN[ k ] ], nu.erN[ k ]);
+                let li = getstraitlinelabelatend( 0, vpos, halfwid, vpos, c, 4, ereigbez, 0 );
+                li.name = ereigbez; //+ " ("+ Us[v][2] +"),"+Us[v][1].toString()+", "+currenttext.toString() ;
+			    li.onmouseout = function(){ hideelemname( ); };
+			    li.onmouseenter = function(){ showelemname( this ); };
+                drawingall.appendChild( li );
+                ang = 45;
+            } else { //but a 
+                //console.log("l")
+                if(ereigbez != oldereigbez){
+                    drawingall.appendChild( getsvglabelcolor( ereigbez, halfwid, vpos+4, ang, c) );
+                }
+            }
+            //console.log(oldk, k, k-oldk, ereigbez);
+            oldk = k;
+            ang += 5;
+            oldereigbez = ereigbez;
+    }
+    
+    return drawingall;
+}
+
+function nutzungeninspacemousetouch( NU, w, h ){
+    const ncou = NU.length; 
+    let drawingall = getsvgMAINELEM( w, h );
+    
+    for( let i = 0; i < ncou; i += 1 ){
+        const nu = NU[ i ];
+        const wa = nu.paramwebs.pagewidth;
+        const ha = nu.paramwebs.pageheight;
+        //console.log(wa, w, ha, h);
+        let ox = 0;
+        let oy = 0;
+        const colorofnutzung = getColorCode( ); //randmom color code
+        let mousetouch = {};
+        for( let k in nu.mousemo ){
+            mousetouch[k] = nu.mousemo[k];
+        }
+        for( let k in nu.touchmo ){
+            mousetouch[k] = nu.touchmo[k];
+        }
+        for( let k in mousetouch ){
+            
+            const point = mousetouch[ k ]; //[x,y]
+            const u = point[ 0 ] / wa;
+            if(!u){
+                break;
+            }
+            const v = point[ 1 ] / ha;
+            const xc = u * w;
+            const yc = v * h;
+            //console.log(xc, yc, u, v)
+            if( ox != 0 && oy != 0 && Math.abs(ox-xc) < 0.99 && Math.abs(oy-yc) < 0.99 ){
+                drawingall.appendChild( getstraitline( ox, oy, xc, yc, colorofnutzung, 2 ) );
+            } else {
+                drawingall.appendChild( getstraitline( ox, oy, xc, yc, colorofnutzung, 0.5 ) );
+            }
+            ox = xc; 
+            oy = yc;
+        }
+    }
+    return drawingall;
+}
+
+function nutzungeninspaceklick( NU, w, h ){
+    const ncou = NU.length; 
+    let drawingall = getsvgMAINELEM( w, h );
+    
+    for( let i = 0; i < ncou; i += 1 ){
+        const nu = NU[ i ];
+        const wa = nu.paramwebs.pagewidth;
+        const ha = nu.paramwebs.pageheight;
+        console.log(wa, w, ha, h);
+        let ox = 0;
+        let oy = 0;
+        const colorofnutzung = getColorCode( ); //randmom color code
+        let mousetouch = {};
+       
+        for( let k in nu.erN ){
+            if( nu.erN[k] != "kld" && nu.erN[k] != "pld" && nu.erN[k] != "tld"){
+                continue;
+            }
+            const point = nu.paN[ k ]; //[x,y]
+            const u = point[ 0 ] / wa;
+            if(!u){
+                break;
+            }
+            const v = point[ 1 ] / ha;
+            const xc = u * w;
+            const yc = v * h;
+            console.log(xc, yc, u, v)
+            /*if( ox != 0 && oy != 0 && Math.abs(ox-xc) < 0.99 && Math.abs(oy-yc) < 0.99 ){
+                drawingall.appendChild( getstraitline( ox, oy, xc, yc, colorofnutzung, 2 ) );
+            } else {
+                drawingall.appendChild( getstraitline( ox, oy, xc, yc, colorofnutzung, 0.5 ) );
+            }*/
+            drawingall.appendChild( getrounddotlab( xc, yc, 2, 0, "", colorofnutzung, colorofnutzung, "" ) );
+            ox = xc; 
+            oy = yc;
+        }
+    }
+    return drawingall;
+}
+
+function nutzungsequnenzen(){
+    
+	var w = 10000;
+	var h = 50*alltexts.length;
+	var xmlns = "http://www.w3.org/2000/svg";
+	var mainsvgelem = document.createElementNS (xmlns, "svg");
+	mainsvgelem.setAttributeNS (null, "viewBox", "0 0 " + w + " " + h);
+    mainsvgelem.setAttributeNS (null, "width", w);
+    mainsvgelem.setAttributeNS (null, "height", h);
+    mainsvgelem.style.display = "block";
+	mainsvgelem.style.background = "white";
+
+	let cx = 3;
+	let cy = 10;
+	let hinc = 4;
+	let vinc = 12;
+	let hb = 6;
+	let vb = 6;
+	let maxtexts = alltexts.length-1;
+	let currenttext = 0;
+	let oldcx = 10000000;
+	console.log(textnames);
+	let nref = textnames[ currented ];
+	for( let currenttext = 0; currenttext < alltexts.length; currenttext++ ){
+		if( currenttext != currented ){
+			let randcolor = '#' + Math.random().toString(16).substring(2, 8);
+			let wasin = false;
+			//text einblenden
+			let n = textnames[ currenttext ]
+			let labelverg = svgtext( cx, cy, 0, "9px",  nref+" MIT "+n, "black", xmlns )
+			labelverg.setAttribute( 'onclick', "currented="+currenttext.toString()+";document.querySelector('#vissamesequneces').innerHTML = ''; buildcomparatiowico( "+currenttext.toString()+" );document.querySelector('#vissamesequneces').appendChild( nutzungsequnenzen( ) );" );
+			mainsvgelem.appendChild( labelverg );
+			//cy weiter setzen
+			cy = cy+10;
+			for( var wi = 0; wi < alltexts[ currented ].length; wi = wi+1 ){
+				var Us = wico[ wi.toString() ]; 
+				if( wasin ){
+					randcolor = '#' + Math.random().toString(16).substring(2, 8);
+					wasin = false;
+				}
+				randcolor = colorforcode[ alltexts[ currented ][wi] ];
+				let wordline = svgline( cx, cy, cx, cy+vb, hb, randcolor, xmlns);
+				
+				wordline.name = coding[ alltexts[ currented ][wi] ]; //+" ("+ wi.toString() +"), " + currented.toString();
+				wordline.onmouseout = function(){ hideelemname( ); };
+				wordline.onmouseenter = function(){ showelemname( this ); };
+				mainsvgelem.appendChild( wordline );
+    			if( Us != undefined ){
+					//console.log( Us.length, Us, alltexts[ Us[1][0] ][ Us[1][1] ] );
+					var ccx = cx;
+					var ccy = cy+vb+vb;
+					
+					for(var v = 0; v < Us.length; v++){
+						if( Us[v][0] == currenttext ){
+							//alltexts[ Us[v][0] ][ Us[v][1] ] //diffil Us[0][2] 
+							randcolor = colorforcode[ alltexts[ Us[v][0] ][ Us[v][1] ] ];
+							var wordl = svgline( ccx, ccy, ccx, ccy+vb, hb, randcolor, xmlns);
+							wordl.name = coding[ alltexts[ Us[v][0] ][ Us[v][1] ] ]; //+ " ("+ Us[v][2] +"),"+Us[v][1].toString()+", "+currenttext.toString() ;
+							wordl.onmouseout = function(){ hideelemname( ); };
+							wordl.onmouseenter = function(){ showelemname( this ); };
+							mainsvgelem.appendChild( wordl );
+							if( Us[v][2] == "" ){
+								var sameline = svgline( ccx, ccy, cx, cy+vb, 1, "black", xmlns);
+								mainsvgelem.appendChild( sameline );
+							}
+							ccx += hb + hinc;
+							wasin = true;
+						} 
+					}
+					cx = ccx;
+				} else {  
+					cx += hb + hinc;
+				}
+				//falls es eine wico gibt und der text zum basistext aber shcon endete
+				if(oldcx == cx){
+					cx += hb + hinc;
+				}
+				oldcx = cx;
+			}
+			cy = cy+vb+vb+vb+vb+vb+vb+vb;
+			cx = 3;
+		}
+		
+	}
+	return mainsvgelem;
+
+}
 
 /*------------------DOWNLOADING SVG TO FILE-----------------------------------*/
-function downsvg( elem, name ) {
-  const base64dec = btoa(unescape(encodeURIComponent(elem.outerHTML)));
-  const a = document.createElement('a');
-  const e = new MouseEvent('click');
 
-  a.download = name+".svg";
-  a.href = 'data:text/html;base64,' + base64dec;
-  a.dispatchEvent(e);
+function svgaspngdown( elem, name, w, h ){
+    let canv = document.createElement('canvas');
+    let svgString = new XMLSerializer().serializeToString( elem );
+    
+    let ctxc = canv.getContext("2d");
+    let domurl = self.URL || self.webkitURL || self;
+    let img = new Image();
+    let svgblo = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+    let url = domurl.createObjectURL( svgblo );
+    img.onload = function() {
+        ctxc.drawImage( img, 0, 0, w, h );
+        let downloadLink = document.createElement('a');
+        dli.setAttribute('download', name+'.png');
+        canv.toBlob(blob => {
+          let url = URL.createObjectURL(blob);
+          dli.setAttribute('href', url);
+          dli.click();
+        });
+    };
+    img.src = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svgString);
+   
+}
+
+function downsvg( elem, name ) { //...
+  if( elem != undefined){  
+      const base64dec = btoa(unescape(encodeURIComponent(elem.outerHTML)));
+      const a = document.createElement('a');
+      const e = new MouseEvent('click');
+
+      a.download = name+".svg";
+      a.href = 'data:text/html;base64,' + base64dec;
+      a.dispatchEvent(e);
+  }
 }
 function downsvgfromelem( elem, name ) {
   const base64dec = btoa(unescape(encodeURIComponent(elem.innerHTML)));
