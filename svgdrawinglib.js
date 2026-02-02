@@ -80,6 +80,8 @@ function getdotfkt( cx, cy, r, name, fktcall, cocol, colstro ){ //gon
     po += (cx+(r/2)).toString()+","+(cy-ri).toString()+" "; //oo 5
 
     let popo = document.createElementNS( xmlns, 'polygon' );
+    
+    
     popo.setAttribute( 'title', name );
     popo.setAttribute( 'id', name+"dot" );
     popo.setAttribute( 'fill' , cocol     );
@@ -133,8 +135,8 @@ function getsquare( cx, cy, r, name, linkit, cocol, colstro ){
     let rect = document.createElementNS( xmlns,'rect' );
     rect.setAttributeNS( null,'x',cx );
     rect.setAttributeNS( null,'y',cy );
-    rect.setAttributeNS( null,'width', r.toString() );
-    rect.setAttributeNS( null,'height',r.toString() );
+    rect.setAttributeNS( null,'width', Math.abs(r).toString() );
+    rect.setAttributeNS( null,'height',Math.abs(r).toString() );
     rect.setAttributeNS( null,'fill', cocol );
     rect.setAttributeNS( null,'stroke', colstro );
     return rect;
@@ -272,6 +274,18 @@ function getstraitline( x1, y1, x2, y2, c, w ){
 
     return popo;
 }
+function getstraitlinehiddenlab( x1, y1, x2, y2, c, w, lab ){
+    let popo = document.createElementNS( xmlns, 'line' );
+    popo.setAttribute( 'stroke' , c );
+    popo.setAttribute( 'stroke-width' , w );
+    popo.setAttribute( 'x1' , x1     );
+    popo.setAttribute( 'y1' , y1     );
+    popo.setAttribute( 'x2' , x2     );
+    popo.setAttribute( 'y2' , y2     );
+    //popo.setAttribute( 'title', lab );
+    popo.setAttribute( "onclick", "alert('"+lab+"')" );
+    return popo;
+}
 /*------------------------PLOT___ VISUALISATIONS------------------------------*/
 function getbarplotsimple( tw, th, move, data, wink ){ //data keys is lables for x, data value is values for the y, downwards facing
     let mainsvgelem = getsvgMAINELEM( (tw+move).toString(), (th+move).toString() );
@@ -287,9 +301,94 @@ function getbarplotsimple( tw, th, move, data, wink ){ //data keys is lables for
     //ceck if max value is greater than th - 
     for( let i in data ){
         let toadd = data[ i ];
+        
         //getstraitlinelabelatend( x1, y1, x2, y2, c, w, l, dg )
         
         mainsvgelem.appendChild( getstraitlinelabelatend( posx+posplusxbalk, posy, posx+posplusxbalk, posy+toadd, getColorCode(), widthofbalk, toadd.toString() +" :: "+  i, wink ) );
+        posx += xinc;
+    }
+    return mainsvgelem;
+}
+function getbarplotsimplescaledvertival( tw, th, move, data ){
+    let mainsvgelem = getsvgMAINELEM( (tw+move).toString(), (th+move).toString() );
+    let posx = move;
+    let posy = move;
+    const ll = Object.keys( data ).length;
+    let yinc = 20;
+    if( th < ( ll * yinc ) ){
+        yinc = Math.round( th / ll );
+    }
+    const widthofbalk = Math.floor(yinc/2);
+    const posplusxbalk = widthofbalk/2;
+    let maxx = -1;
+    for( let i in data ){
+        if(maxx < data[ i ]){
+            maxx = data[ i ];
+        }
+    }
+    if( !isFinite( maxx ) || maxx  <= 0 ){
+        maxx = 0.000000000001;
+    } else {
+        /*if( maxx < 1.0 ){
+            maxx = 1.0;
+        } */  
+    }
+    for( let i in data ){
+        let toaddA = data[ i ];
+        //if( isNaN(toaddA) || !isFinite(toaddA) ) {
+        if( !isFinite(toaddA) || toaddA == 0 ) {
+            toaddA = 0.000000000001;
+        }
+        const toadd = (toaddA*tw)/maxx;
+        
+        //console.log(toaddA, i, toadd, maxy, data);
+        
+        //getstraitlinelabelatend( x1, y1, x2, y2, c, w, l, dg )
+        
+        mainsvgelem.appendChild( getstraitlinehiddenlab( posx, posy+posplusxbalk, posx+toadd, posy+posplusxbalk, getColorCode(), widthofbalk, toaddA.toString() +" :: "+  i ) );
+        posy += yinc;
+    }
+    return mainsvgelem;
+}
+function getbarplotsimplescaled( tw, th, move, data ){ //data keys is lables for x, data value is values for the y, downwards facing
+    let mainsvgelem = getsvgMAINELEM( (tw+move).toString(), (th+move).toString() );
+    let posx = move;
+    let posy = move;
+    const ll = Object.keys( data ).length;
+    let xinc = 20;
+    if( tw < ( ll * xinc ) ){
+        xinc = Math.round( tw / ll );
+    }
+    const widthofbalk = Math.floor(xinc/2);
+    const posplusxbalk = widthofbalk/2;
+    let maxy = -1;
+    for( let i in data ){
+        if(maxy < data[ i ]){
+            maxy = data[ i ];
+        }
+    }
+    if( !isFinite( maxy ) || maxy  <= 0 ){
+        maxy = 0.000000000001;
+    } else {
+        /*if( maxy < 1.0 ){
+            maxy = 1.0;
+        } */  
+    }
+    
+    //ceck if max value is greater than th - 
+    for( let i in data ){
+        let toaddA = data[ i ];
+        //if( isNaN(toaddA) || !isFinite(toaddA) ) {
+        if( !isFinite(toaddA) || toaddA == 0 ) {
+            toaddA = 0.000000000001;
+        }
+        const toadd = (toaddA*th)/maxy;
+        
+        //console.log(toaddA, i, toadd, maxy, data);
+        
+        //getstraitlinelabelatend( x1, y1, x2, y2, c, w, l, dg )
+        
+        mainsvgelem.appendChild( getstraitlinehiddenlab( posx+posplusxbalk, posy, posx+posplusxbalk, posy+toadd, getColorCode(), widthofbalk, toaddA.toString() +" :: "+  i ) );
         posx += xinc;
     }
     return mainsvgelem;
@@ -412,6 +511,73 @@ function gethistoSVGbare(tw, th, scale, move, data, linksss){ //dict input
     return mainsvgelem;
 }
 
+function gethistoSVGbare1px( tw, th, maxlen, data, onclickaction ){ //dict input
+    const ll = len( data ); // data is a dict
+    let xinc = 1
+    
+    let mainsvgelem = getsvgMAINELEM( maxlen.toString(), (th+60).toString() );
+    let posx = 0;
+    let posy = 1;
+    let i = 0;
+    let maxval = 0;
+    for( let k in data ){
+        if(data[k] > maxval){
+            maxval = data[k];
+        }
+    }
+    //console.log(maxval , "maxval");
+    for( let k in data ){
+        if(i == maxlen){
+        
+            break;
+            
+        }
+        posx = ( i * xinc); //fixed length from label
+        
+        let toadd = ((data[k]*th)/maxval);
+        
+        if(i == 0){
+            mainsvgelem.appendChild( getstraitlinelabelatend( posx+1, posy, posx+1, posy+toadd, getColorCode(), 1, data[k].toString(), 90 ) );
+        } else {
+            mainsvgelem.appendChild( getstraitlinelabelatend( posx+1, posy, posx+1, posy+toadd, getColorCode(), 1, "", 90 ) );
+        }
+        i += 1;
+    }
+    
+    mainsvgelem.setAttribute( 'onclick', onclickaction );
+    return mainsvgelem;
+}
+
+function barcode( stepsize, beta0, beta1, beta2 ){
+    const ll = beta1.length;
+    const hsize = stepsize;
+    let maxh = (ll*hsize)+2;
+    let maxlen = (ll*stepsize)+2;
+    let mainsvgelem = getsvgMAINELEM( maxlen.toString(), maxh.toString() );
+    const nc = "black";
+    const ec = "blue";
+    const sc = "red";
+    let posx = 0;
+    for( let i = 0; i < beta0.length; i += 1 ){
+        
+         mainsvgelem.appendChild( getstraitline( posx, beta0[i]*hsize, posx+stepsize, beta0[i]*hsize, nc, 5 ) );
+         if(i<beta0.length-1){
+            mainsvgelem.appendChild( getstraitline( posx+stepsize, beta0[i]*hsize, posx+stepsize, beta0[i+1]*hsize, nc, 2 ) );
+         }
+         mainsvgelem.appendChild( getstraitline( posx, beta1[i]*hsize, posx+stepsize, beta1[i]*hsize, ec, 5 ) );
+         if(i<beta0.length-1){
+            mainsvgelem.appendChild( getstraitline( posx+stepsize, beta1[i]*hsize, posx+stepsize, beta1[i+1]*hsize, ec, 2 ) );
+         }
+         mainsvgelem.appendChild( getstraitline( posx, beta2[i]*hsize, posx+stepsize, beta2[i]*hsize, sc, 1 ) );
+         if(i<beta0.length-1){
+            mainsvgelem.appendChild( getstraitline( posx+stepsize, beta2[i]*hsize, posx+stepsize, beta2[i+1]*hsize, sc, 1 ) );
+         }
+         posx = posx + stepsize;
+    }
+    return mainsvgelem;
+}
+
+function ah(){ console.log("sss");alert("aa"); }
 /*------------------------MAP____ VISUALISATIONS------------------------------*/
 function getheatmapsquares( tw, th, scale, move, data, namearray, linksss ){
 
@@ -656,6 +822,183 @@ function drawhclust( tw, th, scale, move, hclustar, linksss ){ //strong hierarch
     return mainsvgelem;
 }
 
+function drawhclustraregraph( tw, th, scale, move, hclustar, raregr, linksss ){ //strong hierarchical
+    //console.log( raregr );
+    let mainsvgelem = getsvgMAINELEM( tw.toString(), (th+move).toString() );
+    const offsety = 100; //200;
+    const offsetx = 10; //200;
+    const r = 10;
+    const swv = 5.0;
+    //this gives a regular grid for the points
+    let yinc = Math.round( (th - (offsety*2)) / hclustar[0].length );
+    let xinc = Math.round( (tw - (offsetx*2)) / hclustar[0][ hclustar[0].length-1 ][0].length );
+    //console.log(xinc, yinc);
+    let ll = hclustar[0].length-1 ;
+    let posy =  yinc + offsety + move;
+    let cc = [];
+    let lastpos = [];
+    let lastweight = [];
+    //draw sorted result layer (every node is a cluster)
+    let nametopos = {};
+    let allmaximumshare = {};
+    let absmax = 0;
+    for(let ci = 0; ci < hclustar[ 0 ][ ll ][0].length; ci+=1 ){ //get last clusterlayer wich gives the over all sorting
+        //dar dot and name
+        let indexofthing = hclustar[ 0 ][ ll ][0][ ci ];
+        //color coding of dots
+        const c1 = getColorCode();
+        cc.push(c1);  
+        //naming and position
+        let posx =  (ci *xinc ) + offsetx ;
+        let nn = hclustar[1][ indexofthing ];
+        nametopos[ nn ] = [posx, posy, c1];
+        let maximumshare = 0;
+        for( let R = 0; R < raregr[ indexofthing ].length; R += 1 ){ //get over all maximum of shared rare token
+            if( raregr[ indexofthing ][ R ][0].length > maximumshare ){
+                maximumshare = raregr[ indexofthing ][ R ][0].length;
+            }
+            if( raregr[ indexofthing ][ R ][0].length > absmax ){
+                absmax = raregr[ indexofthing ][ R ][0].length;
+            }
+        }
+        allmaximumshare[nn] = maximumshare;
+    }
+    const verticalstepgraph = (move/ll);
+    //draw connections between dots on rare basis, above the cluster diagram
+     for(let ci = 0; ci < hclustar[ 0 ][ ll ][0].length; ci += 1 ){ //get last clusterlayer wich gives the over all sorting
+        
+        let indexofthing = hclustar[ 0 ][ ll ][0][ ci ];
+        //console.log( raregr[ indexofthing ] )
+        
+        let nn = hclustar[1][ indexofthing ];//+" "+indexofthing.toString();
+        for( let R = 0; R < raregr[ indexofthing ].length; R += 1 ){
+            //console.log(r, raregr[ indexofthing ]);
+            
+            const sharevalue = raregr[ indexofthing ][ R ][0].length;
+            if( sharevalue != 0 ){//if rare token shared
+                const posxstart = nametopos[ hclustar[1][ indexofthing ] ][ 0 ];
+                const posystart = nametopos[ hclustar[1][ indexofthing ] ][ 1 ]-r;
+                const posxend = nametopos[ hclustar[ 1 ][ R ] ][ 0 ];
+                const posyend = nametopos[ hclustar[ 1 ][ R ] ][ 1 ]-r;
+                
+                if( posxstart < posxend ){
+                    const posxmid = ( ( posxend - posxstart ) / 2 ) + posxstart;
+                    let fractionrarefrom = (sharevalue/raregr[ indexofthing ][ R ][1][0])*2;
+                    if( fractionrarefrom > 1.0 ){
+                        fractionrarefrom = (sharevalue/raregr[ indexofthing ][ R ][1][0]); //not the best way, but its for drawing
+                    }
+                    let fractionrareto = (sharevalue/raregr[ indexofthing ][ R ][1][1])*2;
+                    if( fractionrarefrom > 1.0 ){
+                        fractionrareto = (sharevalue/raregr[ indexofthing ][ R ][1][1]);
+                    }
+                    
+                    
+                    let posymid = posystart-(((verticalstepgraph*(R+1))-r));
+                    if( posymid < 0 ){ posymid = 0; }
+                    let templineS = getstraitlinehiddenlab( posxstart, posystart, posxmid, posymid, cc[ ci ], 2, (sharevalue/raregr[ indexofthing ][ R ][1][0]).toString()+", "+raregr[ indexofthing ][ R ][0].length.toString()+": "+raregr[ indexofthing ][ R ][0].join(" / ") );
+                    templineS.setAttribute( 'opacity', fractionrarefrom );
+                    mainsvgelem.appendChild( templineS ); 
+                    let templineE = getstraitlinehiddenlab( posxmid, posymid, posxend, posyend, nametopos[ hclustar[ 1 ][ R ] ][2], 2, (sharevalue/raregr[ indexofthing ][ R ][1][1]).toString()+", "+raregr[ indexofthing ][ R ][0].length.toString()+": "+raregr[ indexofthing ][ R ][0].join(" / ") );
+                    templineE.setAttribute( 'opacity', fractionrareto );
+                    mainsvgelem.appendChild( templineE ); 
+                    //console.log( "shared ", sharevalue, " from ", indexofthing, hclustar[1][ indexofthing ], " to ", R, hclustar[ 1 ][ R ], " pos ", nametopos[ hclustar[ 1 ][ R ] ] );
+                }
+            }
+        }
+        
+        
+        console.log(ci, nn, indexofthing);
+        const c1 = cc[ci];
+        cc.push(c1);
+        lastpos.push([0,0]);
+        lastweight.push(1);
+        const c2 = getColorCode();
+        let posx =  (ci *xinc ) + offsetx ;
+        
+        mainsvgelem.appendChild( getrounddotlab( posx, posy, r, -90, nn, c1, c2, linksss ) ); 
+        
+    }
+    //determin the layer connection width
+    let mindi = Infinity;
+    let maxdi = 0;
+    for(let cl = 0; cl < hclustar[2].length; cl+=1){ //done use the first layer use the second layer and dont use the last one
+        for(let ci = 0; ci < hclustar[2][cl].length; ci+=1){
+            
+            for(let cp = 0; cp < hclustar[2][cl][ci].length; cp += 1 ){
+                if( hclustar[2][cl][ci][cp] < mindi ){
+                    mindi = hclustar[2][cl][ci][cp];
+                }
+                if( hclustar[2][cl][ci][cp]> maxdi ){
+                    maxdi = hclustar[2][cl][ci][cp];
+                }
+            }
+            
+        }
+    }
+    mindi += 1;
+    maxdi += 1;
+    //darw connections to join clusters
+    const maxwidth = 20;
+    let sw = (mindi * maxwidth) / maxdi;
+    
+    console.log(mindi, maxdi, sw);
+    for(let cl = 0; cl < hclustar[0].length; cl+=1){ //done use the first layer use the second layer and dont use the last one
+        //console.log("Clusterlayer ", cl);
+        let posy1 = ( (cl+1) * yinc ) + offsety + move;
+        let posy2 = ( (cl+2) * yinc ) + offsety + move;
+        
+        for(let ci = 0; ci < hclustar[0][cl].length; ci+=1){
+            
+            //draw a line from
+            let firstindex = hclustar[0][cl][ci][0];
+            
+            let g = getindexofitemindistinctarray( hclustar[ 0 ][ ll ][0], firstindex );
+            const c1 = cc[g];
+            sw =  ((hclustar[2][cl][ci][ hclustar[2][cl][ci].length-1 ] * maxwidth) / maxdi ); //maybe as label????
+            if(sw < 1){
+                sw = sw * 10;
+            }
+            if(sw > maxwidth){
+                sw = sw/10;
+            }
+            if(sw == 0){
+                sw = 1;
+            }
+            //console.log("Cluster ", ci, sw );
+            
+            let posx = (g*xinc)+offsetx; 
+            lastpos[g][0] = posx;
+            lastpos[g][1] = posy2;
+            lastweight[g] = sw;
+            /*for(let i = 0; i < HCLU[0][cl][ci].length; i += 1){
+                console.log("Name ", HCLU[1][HCLU[0][cl][ci][i]]);
+            }*/
+               
+            mainsvgelem.appendChild( getstraitline( posx, posy1, posx, posy2, c1, swv ) );    
+        }
+    }
+
+    //draw the horizontal line
+    for(let g = 0; g < lastpos.length; g += 1){
+        const c1 = cc[g];
+        let x2 = lastpos[g][0];
+        let y2 = lastpos[g][1];
+        
+        for(let ig = g; ig > -1; ig -= 1){
+            //console.log("i- i y y- ", ig, g, y2, lastpos[ig][1]);
+            if( lastpos[ig][1] > y2 ){
+                x2 = lastpos[ig][0];
+                y2 = lastpos[ig][1];
+                sw = lastweight[ig]; //maxbe as label ???
+                break;
+            }
+        }
+        mainsvgelem.appendChild( getstraitline( 0, lastpos[g][1], tw, lastpos[g][1], "#d3d3d3", 1 ) );
+        mainsvgelem.appendChild( getstraitline( lastpos[g][0], lastpos[g][1], x2, lastpos[g][1], c1, swv ) );  
+    }
+    return mainsvgelem;
+}
+
 function drawhclustheat( tw, th, scale, move, hclustar, dmts, linksss ){
     //console.log(dmts);
     const offsety = move; //200;
@@ -824,7 +1167,7 @@ function drawhclustheat( tw, th, scale, move, hclustar, dmts, linksss ){
 
 } 
 
-function drawhclustT( tw, th, scale, move, hclustar, linksss ){ //strong hierarchical
+function drawhclustT( tw, th, scale, move, hclustar, linksss ){ //traditional hierarchical clustering
     const offsety = 100; //200;
     const offsetx = 20; //200;
     const r = 5;
@@ -860,9 +1203,9 @@ function drawhclustT( tw, th, scale, move, hclustar, linksss ){ //strong hierarc
         let nn = hclustar[1][ indexofthing ];//+" "+indexofthing.toString();
         //console.log(ci, nn, indexofthing);
         const c1 = getColorCode();
-        for(let lll = 1; lll < hclustar[ 0 ].length; lll+=1){//go throgh the layers and find first join of the index of thing
-            for(let ccii = 0; ccii < hclustar[ 0 ][lll].length; ccii += 1 ){//go through clustes
-                if(hclustar[ 0 ][lll][ccii].indexOf( indexofthing ) != -1 && hclustar[ 2 ][lll][ccii][0] != 0){
+        for( let lll = 1; lll < hclustar[ 0 ].length; lll+=1 ){//go through the layers and find first join of the index of thing
+            for( let ccii = 0; ccii < hclustar[ 0 ][lll].length; ccii += 1 ){//go through clustes
+                if( hclustar[ 0 ][lll][ccii].indexOf( indexofthing ) != -1 && hclustar[ 2 ][lll][ccii][0] != 0 ){
                     const posy =  (ci * yinc ) + offsety;
                     const posx =  tw-(tw*(hclustar[ 2 ][ lll ][ ccii ][0]/maxdist));
                     posnode[ indexofthing.toString() ] = [posx,posy];
@@ -1037,6 +1380,169 @@ function drawhclustT( tw, th, scale, move, hclustar, linksss ){ //strong hierarc
         mainsvgelem.appendChild( getstraitline( lastpos[g][0], lastpos[g][1], x2, lastpos[g][1], c1, swv ) );  
     }
     */
+    return mainsvgelem;
+}
+
+function drawhclustTgraph( tw, th, scale, move, hclustar, raregr, linksss ){ //traditional hierarchical clustering
+    const offsety = 100; //200;
+    const offsetx = 20; //200;
+    const r = 5;
+    let tempth = hclustar[0][ hclustar[0].length-1 ][0].length*20;
+    if(th < tempth){
+        th = tempth;
+    } 
+    let mainsvgelem = getsvgMAINELEM( (tw+move+offsety).toString(), (th+move+offsetx).toString() );
+    //console.log(hclustar);
+    //this gives a regular grid for the points
+    let xinc = Math.round( (tw - (offsety*2)) / hclustar[0].length );
+    let yinc = Math.round( (th - (offsetx*2)) / hclustar[0][ hclustar[0].length-1 ][0].length );
+    //console.log(xinc, yinc);
+    let mindist = Infinity;
+    let maxdist = 0;
+    for(let l = 1; l < hclustar[ 2 ].length; l+=1 ){
+        for(let ci = 0; ci < hclustar[ 2 ][ l ].length; ci+=1 ){
+            if(hclustar[ 2 ][ l ][ci][0] > maxdist){
+                maxdist = hclustar[ 2 ][ l ][ci][0];
+            }
+            if(hclustar[ 2 ][ l ][ci][0] < mindist){
+                mindist = hclustar[ 2 ][ l ][ci][0];
+            }
+        }
+    }
+    let ll = hclustar[0].length-1;
+    let cc = {};
+    let posnode = {};
+    let posnodename = {};
+    let maxxpos = 0;
+    //get the  position of each node
+    let absmax = 0;
+    for(let ci = 0; ci < hclustar[ 0 ][ ll ][0].length; ci+=1 ){ //get last clusterlayer wich gives the over all sorting
+        //dar dot and name
+        let indexofthing = hclustar[ 0 ][ ll ][0][ ci ];
+        let nn = hclustar[1][ indexofthing ];//+" "+indexofthing.toString();
+        //console.log(ci, nn, indexofthing);
+        const c1 = getColorCode();
+        for( let R = 0; R < raregr[ indexofthing ].length; R += 1 ){ //get over all maximum of shared rare token
+           
+            if( raregr[ indexofthing ][ R ][0].length > absmax ){
+                absmax = raregr[ indexofthing ][ R ][0].length;
+            }
+        }
+        for( let lll = 1; lll < hclustar[ 0 ].length; lll+=1 ){//go through the layers and find first join of the index of thing
+            for( let ccii = 0; ccii < hclustar[ 0 ][lll].length; ccii += 1 ){//go through clustes
+                if( hclustar[ 0 ][lll][ccii].indexOf( indexofthing ) != -1 && hclustar[ 2 ][lll][ccii][0] != 0 ){
+                    const posy =  (ci * yinc ) + offsety;
+                    const posx =  tw-(tw*(hclustar[ 2 ][ lll ][ ccii ][0]/maxdist));
+                    posnode[ indexofthing.toString() ] = [posx,posy];
+                    if(posx > maxxpos){
+                        maxxpos = posx;
+                    }
+                    cc[ indexofthing.toString() ] = c1;
+                    //mainsvgelem.appendChild( getlabeledcircle( posx+offsetx, posy, r, nn, 1, c1, linksss ) );  
+                    lll = hclustar[ 0 ].length;
+                    break;
+                }
+            }
+        }
+           
+    }
+    //console.log(posnode);
+    const horizontalstepgraph = 20;
+    for( let ci = 0; ci < hclustar[ 0 ][ ll ][0].length; ci += 1 ){ //insert the connections related to the graph of common rare token
+        let indexofthing = hclustar[ 0 ][ ll ][0][ ci ];
+        //console.log( raregr[ indexofthing ] );
+        
+        let nn = hclustar[1][ indexofthing ];//+" "+indexofthing.toString();
+        for( let R = 0; R < raregr[ indexofthing ].length; R += 1 ){
+            //console.log(R, raregr[ indexofthing ], nn);
+            
+            const sharevalue = raregr[ indexofthing ][ R ][0].length;
+            //console.log(raregr[ indexofthing ][ R ])
+            if( sharevalue != 0 ){//if rare token shared
+                const posxstart = posnode[ indexofthing ] [ 0 ]+(2*r)+offsetx;
+                const posystart = posnode[ indexofthing ] [ 1 ];
+                const posxend = posnode[ R ][ 0 ]+(2*r)+offsetx;
+                const posyend = posnode[ R ][ 1 ];
+                
+                if( posystart < posyend ){
+                    let posmidstartx = Math.max(posxstart,posxend) + (move/2);
+                    let posmidstarty = posystart;
+                    let posmidendx = Math.max(posxstart,posxend) + (move/2);
+                    let posmidendy = posyend;
+                    let posxmid = Math.max(posxstart,posxend) + (R*10) + move;   
+                    let opavalue1 = (sharevalue/raregr[ indexofthing ][ R ][1][0])*2;
+                    if( opavalue1 > 1.0 ){
+                        opavalue1 = (sharevalue/raregr[ indexofthing ][ R ][1][0]);
+                    }
+                    let opavalue2 = (sharevalue/raregr[ indexofthing ][ R ][1][1])*2;
+                    if( opavalue2 > 1.0 ){
+                        opavalue2 = (sharevalue/raregr[ indexofthing ][ R ][1][1]);
+                    }       
+                    const posymid = ( ( posyend - posystart ) / 2 ) + posystart; 
+                    let templine = getstraitlinehiddenlab( posxstart, posystart, posmidstartx, posmidstarty, cc[ ci ], 1, (sharevalue/raregr[ indexofthing ][ R ][1][0]).toString()+", "+raregr[ indexofthing ][ R ][0].length.toString()+": "+raregr[ indexofthing ][ R ][0].join(" / ") );
+                    templine.setAttribute( 'opacity', opavalue1 );
+                    mainsvgelem.appendChild( templine ); 
+                    let templineB = getstraitlinehiddenlab( posmidstartx, posmidstarty, posxmid, posymid, cc[ ci ], 2, (sharevalue/raregr[ indexofthing ][ R ][1][0]).toString()+", "+raregr[ indexofthing ][ R ][0].length.toString()+": "+raregr[ indexofthing ][ R ][0].join(" / ") );
+                    templineB.setAttribute( 'opacity', opavalue1 );
+                    mainsvgelem.appendChild( templineB ); 
+                    let templineC = getstraitlinehiddenlab( posxmid, posymid, posmidendx, posmidendy, cc[ ci ], 2, (sharevalue/raregr[ indexofthing ][ R ][1][1]).toString()+", "+raregr[ indexofthing ][ R ][0].length.toString()+": "+raregr[ indexofthing ][ R ][0].join(" / ") );
+                    templineC.setAttribute( 'opacity', opavalue2 );
+                    mainsvgelem.appendChild( templineC ); 
+                    let templineD = getstraitlinehiddenlab( posmidendx, posmidendy, posxend, posyend, cc[ ci ], 1, (sharevalue/raregr[ indexofthing ][ R ][1][1]).toString()+", "+raregr[ indexofthing ][ R ][0].length.toString()+": "+raregr[ indexofthing ][ R ][0].join(" / ") );
+                    templineD.setAttribute( 'opacity', opavalue2 );
+                    mainsvgelem.appendChild( templineD ); 
+                    //console.log( "shared ", sharevalue, " from ", indexofthing, hclustar[1][ indexofthing ], " to ", R, hclustar[ 1 ][ R ] );
+                    
+                    
+                }
+                
+            }
+        }
+        mainsvgelem.appendChild( getlabeledcircle( posnode[ indexofthing ][ 0 ]+offsetx, posnode[ indexofthing ][ 1 ], r, nn, 1, cc[ ci ], linksss ) );
+    }
+    //console.log("ahahjhisai")
+    
+    //draw sorted result layer (every node is a cluster) vertical on the most right position
+    for(let l = 0; l < hclustar[ 0 ].length; l+=1 ){
+        for(let ci = 0; ci < hclustar[ 0 ][ l ].length; ci += 1 ){
+            if( hclustar[ 0 ][ l ][ ci ].length > 1 ){
+                //console.log("join",hclustar[ 0 ][ l ][ ci ], "at",  hclustar[ 2 ][ l ][ ci ][0]);
+                let xpos = Infinity;
+                let xold = 0;
+                let fromy = Infinity;
+                let toy = 0;
+                let c1 = 0;
+                for(let pi = 0; pi < hclustar[ 0 ][ l ][ ci ].length; pi+=1 ){
+                    
+                    if(posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][0] < xpos){
+                        xpos = posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][0];
+                    }
+                    if(posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][0] > xold){
+                        xold = posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][0];
+                    }
+                    if(posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][1] < fromy){
+                        fromy = posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][1];
+                    }
+                    if(posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][1] > toy){
+                        toy = posnode[hclustar[ 0 ][ l ][ ci ][pi].toString()][1];
+                    }
+                    c1 = cc[hclustar[ 0 ][ l ][ ci ][pi].toString()];
+                }
+                
+                let hy = Math.round((fromy+toy)/2);
+                mainsvgelem.appendChild( getstraitline( xpos+offsetx, fromy, xpos, fromy, c1, 1.0 ) );
+                mainsvgelem.appendChild( getstraitline( xpos+offsetx, toy, xpos, toy, c1, 1.0 ) ); 
+                
+                mainsvgelem.appendChild( getstraitline( xpos, fromy, xpos, toy, c1, 1.0 ) ); 
+                //oben die verbindung zu einem
+                mainsvgelem.appendChild( getstraitline( xpos, fromy, posnode[hclustar[ 0 ][ l ][ ci ][0].toString()][0], fromy, c1, 1.0 ) );
+                //unten die horizontale verbindung
+                mainsvgelem.appendChild( getstraitline( xpos, toy, posnode[hclustar[ 0 ][ l ][ ci ][hclustar[ 0 ][ l ][ ci ].length-1].toString()][0], toy, c1, 1.0 ) ); 
+            }
+        }
+    
+    }
+  
     return mainsvgelem;
 }
 
@@ -2023,7 +2529,9 @@ function svgaspngdown( elem, name, w, h ){
 }
 
 function downsvg( elem, name ) { //...
-  if( elem != undefined){  
+    
+  if( elem != undefined){ 
+    console.log(elem, name); 
       const base64dec = btoa(unescape(encodeURIComponent(elem.outerHTML)));
       const a = document.createElement('a');
       const e = new MouseEvent('click');
